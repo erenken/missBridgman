@@ -1,24 +1,19 @@
-<mat-toolbar>
+<mat-toolbar class="mat-primary">
   <button mat-icon-button [matMenuTriggerFor]="menu" fxShow="false" fxHide.lt-md="false">
     <mat-icon>menu</mat-icon>
   </button>
   <span>Miss Birdgman Pageants</span>
   <span class="fill-remaining-space"></span>
   <div fxShow="true" fxHide.lt-md="true">
-      <a href="#" mat-button>Home</a>
-      <a href="#" mat-button>Who We Are</a>
-      <a href="#" mat-button>Sponsors</a>
-      <a href="#" mat-button>Event Photos</a>
-      <a href="#" mat-button>Request Info</a>
-      <a href="#" mat-button>Become A Contestant</a>
+      <a
+        *ngFor="let menuItem of menuItems"
+        routerLink="{{menuItem.route}}"
+        mat-button>{{menuItem.displayName}}</a>
   </div>
 </mat-toolbar>
 
 <mat-menu #menu="matMenu">
-  <button mat-menu-item>Home</button>
-  <button mat-menu-item>Who We Are</button>
-  <button mat-menu-item>Sponsors</button>
-  <button mat-menu-item>Event Photos</button>
-  <button mat-menu-item>Request Info</button>
-  <button mat-menu-item>Become A Contestant</button>
+  <button *ngFor="let menuItem of menuItems"
+    mat-menu-item
+    [routerLink]="menuItem.route">{{menuItem.displayName}}</button>
 </mat-menu>

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatMenu } from '@angular/material/menu';
+import { MenuItems } from './menu.items';
 
 @Component({
   selector: 'app-menu',
@@ -10,7 +10,8 @@ export class MenuComponent implements OnInit {
 
   constructor() { }
 
+  menuItems = MenuItems;
+
   ngOnInit() {
   }
-
 }
