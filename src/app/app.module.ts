@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatButtonModule, MatIconModule, MatToolbarModule, MatMenuModule, MatDividerModule, MatCardModule } from '@angular/material';
+import { MatButtonModule, MatIconModule, MatToolbarModule, MatMenuModule, MatDividerModule, MatCardModule, MatDialogModule } from '@angular/material';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -16,6 +16,8 @@ import { SponsorsComponent } from './sponsors/sponsors.component';
 import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
+import { CurrentCourtComponent } from './current-court/current-court.component';
+import { LargeImageDialog } from './large-image/large-image.dialog';
 
 @NgModule({
   declarations: [
@@ -27,7 +29,9 @@ import { BecomeContestantComponent } from './become-contestant/become-contestant
     SponsorsComponent,
     PhotosComponent,
     InfoComponent,
-    BecomeContestantComponent
+    BecomeContestantComponent,
+    CurrentCourtComponent,
+    LargeImageDialog
   ],
   imports: [
     BrowserModule,
@@ -39,6 +43,7 @@ import { BecomeContestantComponent } from './become-contestant/become-contestant
     MatMenuModule,
     MatDividerModule,
     MatCardModule,
+    MatDialogModule,
     FlexLayoutModule
   ],
   providers: [],
