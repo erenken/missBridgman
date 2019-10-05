@@ -1,46 +1,16 @@
 <mat-card>
   <mat-card-title>Currnet Court</mat-card-title>
-  <mat-card-subtitle>2019</mat-card-subtitle>
-  <mat-card-content fxLayout="row" fxLayout.lt-md="column" fxLayoutAlign="center" fxLayoutGap="50px">
-    <mat-card fxFlex="50%">
-      <mat-card-title>Krystin Buist</mat-card-title>
-      <mat-card-subtitle>Miss Bridgman</mat-card-subtitle>
+  <mat-card-content fxLayout="row" fxLayout.lt-md="column" fxLayoutAlign="space-around center" fxLayoutGap="50px">
+    <mat-card fxFlex="50%" *ngFor="let court of currentCourt">
+      <mat-card-title>{{court.name}}</mat-card-title>
+      <mat-card-subtitle>{{court.title}}</mat-card-subtitle>
       <mat-card-content>
-        <div fxLayout="row" fxLayoutWrap fxLayoutAlign="center" fxLayout.lt-md="column" fxLayoutGap="50px">
-          <div fxFlex="40%">
-            <img mat-card-image src="../../assets/images/2019_MissBridgman.jpg" (click)="openDialog($event)" alt="Krystin Buist">
+        <br />
+          <div fxLayout="row" fxLayoutWrap fxLayoutAlign="space-around center" fxLayout.lt-md="column" fxLayoutGap="50px">
+            <div fxFlex="40%" *ngFor="let image of court.imgsSrc" fx>
+              <img mat-card-image src="{{image}}" alt="{{court.name}}" (click)="openDialog($event)">
+            </div>
           </div>
-          <div fxFlex="40%">
-            <img mat-card-image src="../../assets/images/2019_MissBridgman2.jpg" alt="Krystin Buist">
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card fxFlex="50%">
-      <mat-card-title>Justin Jannert</mat-card-title>
-      <mat-card-subtitle>Mr Nice Guy</mat-card-subtitle>
-      <mat-card-content>
-        <div fxLayout="row" fxLayoutWrap fxLayoutAlign="center" fxLayout.lt-md="column" fxLayoutGap="50px">
-          <div fxFlex="40%">
-            <img mat-card-image src="../../assets/images/2019_MrNiceGuy.jpg" alt="Justin Jannert">
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card fxFlex="50%">
-      <mat-card-title>
-        Dempsey DeMercado<br />
-        LaShanna Sparks
-      </mat-card-title>
-      <mat-card-subtitle>
-        Little Miss Bridgman
-      </mat-card-subtitle>
-      <mat-card-content>
-        <div fxLayout="row" fxLayoutWrap fxLayoutAlign="center" fxLayout.lt-md="column" fxLayoutGap="50px">
-          <div fxFlex="40%">
-            <img mat-card-image src="../../assets/images/2019_LittleMissBridgman.jpg" alt="Dempsey DeMercado & LaShanna Sparks">
-          </div>
-        </div>
       </mat-card-content>
     </mat-card>
   </mat-card-content>

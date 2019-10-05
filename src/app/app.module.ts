@@ -17,7 +17,7 @@ import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { CurrentCourtComponent } from './current-court/current-court.component';
-import { LargeImageDialog } from './large-image/large-image.dialog';
+import { LargeImageComponent } from './large-image/large-image.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +31,10 @@ import { LargeImageDialog } from './large-image/large-image.dialog';
     InfoComponent,
     BecomeContestantComponent,
     CurrentCourtComponent,
-    LargeImageDialog
+    LargeImageComponent
+  ],
+  entryComponents: [
+    LargeImageComponent
   ],
   imports: [
     BrowserModule,
