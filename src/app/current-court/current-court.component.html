@@ -1,6 +1,6 @@
 <mat-card>
   <mat-card-title>Currnet Court</mat-card-title>
-  <mat-card-content fxLayout="row" fxLayout.lt-md="column" fxLayoutAlign="space-around center" fxLayoutGap="50px">
+  <mat-card-content fxLayout="column" fxLayoutAlign="space-around center" fxLayoutGap="50px">
     <mat-card fxFlex="50%" *ngFor="let court of currentCourt">
       <mat-card-title>{{court.name}}</mat-card-title>
       <mat-card-subtitle>{{court.title}}</mat-card-subtitle>
