@@ -9,7 +9,7 @@ import { LargeImageData } from './largeImageData';
 })
 export class LargeImageComponent implements OnInit {
 
-  constructor(private dialogRef: MatDialogRef<LargeImageComponent>,
+  constructor(public dialogRef: MatDialogRef<LargeImageComponent>,
               @Inject(MAT_DIALOG_DATA) public data: LargeImageData) { }
 
   ngOnInit() {
