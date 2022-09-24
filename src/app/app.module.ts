@@ -1,11 +1,16 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatButtonModule, MatIconModule, MatToolbarModule, MatMenuModule, MatDividerModule, MatCardModule, MatDialogModule } from '@angular/material';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialogModule } from '@angular/material/dialog';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppRoutingModule } from './app-routing.module';
-import { Browser } from 'protractor';
 
 import { HomeComponent } from './home/home.component';
 import { RootComponent } from './root/root.component';
@@ -17,7 +22,7 @@ import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { CurrentCourtComponent } from './current-court/current-court.component';
-import { LargeImageComponent } from './large-image/large-image.component';
+import { ɵAnimationGroupPlayer } from '@angular/animations';
 
 @NgModule({
   declarations: [
@@ -30,11 +35,9 @@ import { LargeImageComponent } from './large-image/large-image.component';
     PhotosComponent,
     InfoComponent,
     BecomeContestantComponent,
-    CurrentCourtComponent,
-    LargeImageComponent
+    CurrentCourtComponent
   ],
   entryComponents: [
-    LargeImageComponent
   ],
   imports: [
     BrowserModule,

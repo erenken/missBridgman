@@ -1,6 +1,6 @@
 export class MenuItem {
-  displayName: string;
-  route: string;
+  displayName: string = '';
+  route: string = '';
 }
 
 export const MenuItems: MenuItem[] = [

@@ -1,7 +1,7 @@
 export class CurrentCourt {
-  name: string;
-  title: string;
-  imgsSrc: string[];
+  name: string = ''
+  title: string = '';
+  imgsSrc: string[] = [];
 }
 
 export const CurrentCourtCollection: CurrentCourt[] = [
