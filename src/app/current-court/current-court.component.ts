@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { LargeImageComponent } from '../large-image/large-image.component';
+import { MatDialog } from '@angular/material/dialog';
 import { CurrentCourtCollection } from './current-court';
+import { LargeImageComponent } from '../large-image/large-image.component';
 
 @Component({
   selector: 'app-current-court',
