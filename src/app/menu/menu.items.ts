@@ -9,5 +9,6 @@ export const MenuItems: MenuItem[] = [
   // { displayName: 'Sponsors', route: '/sponsors' },
   // { displayName: 'Photos', route: '/photos' },
   // { displayName: 'Request Info', route: '/info' },
+  { displayName: 'Forms', route:'/forms' },
   { displayName: 'Become A Contestant', route: '/becomecontestant' },
 ];

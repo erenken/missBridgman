@@ -23,6 +23,7 @@ import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { CurrentCourtComponent } from './current-court/current-court.component';
 import { ɵAnimationGroupPlayer } from '@angular/animations';
+import { FormsComponent } from './forms/forms/forms.component';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { ɵAnimationGroupPlayer } from '@angular/animations';
     PhotosComponent,
     InfoComponent,
     BecomeContestantComponent,
-    CurrentCourtComponent
+    CurrentCourtComponent,
+    FormsComponent
   ],
   entryComponents: [
   ],
