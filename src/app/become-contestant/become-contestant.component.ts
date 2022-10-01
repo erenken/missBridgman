@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ContesantFormGroups } from './contestant.form.groups';
 
 @Component({
   selector: 'app-become-contestant',
@@ -8,6 +9,8 @@ import { Component, OnInit } from '@angular/core';
 export class BecomeContestantComponent implements OnInit {
 
   constructor() { }
+
+  contestantFormGroups = ContesantFormGroups;
 
   ngOnInit() {
   }

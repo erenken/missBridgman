@@ -1,9 +1,9 @@
-<mat-card>
-  <mat-card-title>Forms</mat-card-title>
+<mat-card *ngFor="let formGroup of contestantFormGroups">
+  <mat-card-title>{{formGroup.header}}</mat-card-title>
   <mat-card-content>
     <ul>
-      <li><a href="../../assets/documents/2020 Miss Bridgman Scholarship Organization Pageant Wear Rental Agreement.pdf"
-          target="_blank">Miss Bridgman Scholarship Organization Pageant Wear Rental Agreement</a></li>
+      <li *ngFor="let formItem of formGroup.formItems"><a [href]="formItem.link"
+          target="_blank">{{formItem.displayName}}</a></li>
     </ul>
   </mat-card-content>
 </mat-card>

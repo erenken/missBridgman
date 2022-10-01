@@ -8,7 +8,7 @@ export const MenuItems: MenuItem[] = [
   { displayName: 'Who We Are', route: '/whoweare' },
   // { displayName: 'Sponsors', route: '/sponsors' },
   // { displayName: 'Photos', route: '/photos' },
-  // { displayName: 'Request Info', route: '/info' },
+  { displayName: 'Tickets', route: '/tickets' },
   { displayName: 'Forms', route:'/forms' },
   { displayName: 'Become A Contestant', route: '/becomecontestant' },
 ];

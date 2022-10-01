@@ -7,6 +7,7 @@ import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { FormsComponent } from './forms/forms/forms.component';
+import { TicketsComponent } from './tickets/tickets.component';
 
 
 
@@ -18,6 +19,7 @@ const routes: Routes = [
   { path: 'info', component: InfoComponent },
   { path: 'becomecontestant', component: BecomeContestantComponent },
   { path: 'forms', component: FormsComponent },
+  { path: 'tickets', component: TicketsComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];
 

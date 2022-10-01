@@ -1,0 +1,8 @@
+<mat-card>
+    <mat-card-title>Tickets</mat-card-title>
+    <mat-card-content>
+      <ul>
+        <li *ngFor="let ticketItem of ticketItems "><a [href]="ticketItem.link" target="_blank">{{ticketItem.displayName}}</a></li>
+      </ul>
+    </mat-card-content>
+  </mat-card>

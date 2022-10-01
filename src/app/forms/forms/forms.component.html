@@ -1,1 +1,8 @@
-<p>forms works!</p>
+<mat-card>
+  <mat-card-title>Forms</mat-card-title>
+  <mat-card-content>
+    <ul>
+      <li *ngFor="let formItem of formItems"><a [href]="formItem.link" target="_blank">{{formItem.displayName}}</a></li>
+    </ul>
+  </mat-card-content>
+</mat-card>
