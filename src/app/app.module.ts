@@ -1,14 +1,13 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatDialogModule } from '@angular/material/dialog';
-import { FlexLayoutModule } from '@angular/flex-layout';
 
 import { AppRoutingModule } from './app-routing.module';
 
@@ -22,7 +21,6 @@ import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
 import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { CurrentCourtComponent } from './current-court/current-court.component';
-import { ɵAnimationGroupPlayer } from '@angular/animations';
 import { FormsComponent } from './forms/forms/forms.component';
 import { TicketsComponent } from './tickets/tickets.component';
 
@@ -41,8 +39,6 @@ import { TicketsComponent } from './tickets/tickets.component';
     FormsComponent,
     TicketsComponent
   ],
-  entryComponents: [
-  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -53,8 +49,7 @@ import { TicketsComponent } from './tickets/tickets.component';
     MatMenuModule,
     MatDividerModule,
     MatCardModule,
-    MatDialogModule,
-    FlexLayoutModule
+    MatDialogModule
   ],
   providers: [],
   bootstrap: [RootComponent]
