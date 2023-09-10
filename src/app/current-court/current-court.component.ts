@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { CurrentCourtCollection } from './current-court';
 import { LargeImageComponent } from '../large-image/large-image.component';
 
