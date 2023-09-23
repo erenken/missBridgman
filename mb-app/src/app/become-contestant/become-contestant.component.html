@@ -1,9 +1,0 @@
-<mat-card *ngFor="let formGroup of contestantFormGroups">
-  <mat-card-title>{{formGroup.header}}</mat-card-title>
-  <mat-card-content>
-    <ul>
-      <li *ngFor="let formItem of formGroup.formItems"><a [href]="formItem.link"
-          target="_blank">{{formItem.displayName}}</a></li>
-    </ul>
-  </mat-card-content>
-</mat-card>

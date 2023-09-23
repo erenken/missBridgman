@@ -19,10 +19,10 @@ import { WhoweareComponent } from './whoweare/whoweare.component';
 import { SponsorsComponent } from './sponsors/sponsors.component';
 import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
-import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
 import { CurrentCourtComponent } from './current-court/current-court.component';
-import { FormsComponent } from './forms/forms/forms.component';
-import { TicketsComponent } from './tickets/tickets.component';
+import { DocumentsComponent } from './documents/documents.component';
+import { ApiService } from './service/apiService';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -34,10 +34,8 @@ import { TicketsComponent } from './tickets/tickets.component';
     SponsorsComponent,
     PhotosComponent,
     InfoComponent,
-    BecomeContestantComponent,
     CurrentCourtComponent,
-    FormsComponent,
-    TicketsComponent
+    DocumentsComponent,
   ],
   imports: [
     BrowserModule,
@@ -49,9 +47,10 @@ import { TicketsComponent } from './tickets/tickets.component';
     MatMenuModule,
     MatDividerModule,
     MatCardModule,
-    MatDialogModule
+    MatDialogModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [ ApiService, HttpClient ],
   bootstrap: [RootComponent]
 })
 export class AppModule { }

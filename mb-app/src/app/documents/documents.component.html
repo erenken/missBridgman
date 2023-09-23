@@ -1,0 +1,13 @@
+<div *ngIf="documents$ | async as documents;">
+  <div *ngFor="let document of documents.Folders| keyvalue">
+    <mat-card>
+      <mat-card-title>{{document.key}}</mat-card-title>
+      <mat-card-content>
+        <ul>
+          <li *ngFor="let file of document.value.Files"><a [href]="file.Url" target="_blank">{{file.Name}}</a></li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+    <br />
+  </div>
+</div>

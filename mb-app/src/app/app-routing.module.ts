@@ -5,9 +5,7 @@ import { WhoweareComponent } from './whoweare/whoweare.component';
 import { SponsorsComponent } from './sponsors/sponsors.component';
 import { PhotosComponent } from './photos/photos.component';
 import { InfoComponent } from './info/info.component';
-import { BecomeContestantComponent } from './become-contestant/become-contestant.component';
-import { FormsComponent } from './forms/forms/forms.component';
-import { TicketsComponent } from './tickets/tickets.component';
+import { DocumentsComponent } from './documents/documents.component';
 
 
 
@@ -17,9 +15,7 @@ const routes: Routes = [
   { path: 'sponsors', component: SponsorsComponent },
   { path: 'photos', component: PhotosComponent },
   { path: 'info', component: InfoComponent },
-  { path: 'becomecontestant', component: BecomeContestantComponent },
-  { path: 'forms', component: FormsComponent },
-  { path: 'tickets', component: TicketsComponent },
+  { path: 'documents', component: DocumentsComponent },
   { path: '', redirectTo: '/home', pathMatch: 'full' }
 ];
 
