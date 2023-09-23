@@ -2,27 +2,27 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using MissBridgman.Repositories;
 
 namespace MissBridgman.Functions
 {
 	public class GetDocuments
 	{
 		private readonly ILogger _logger;
+		private readonly IStorage _storage;
 
-		public GetDocuments(ILoggerFactory loggerFactory)
+		public GetDocuments(ILoggerFactory loggerFactory, IStorage storage)
 		{
 			_logger = loggerFactory.CreateLogger<GetDocuments>();
+			_storage = storage;
 		}
 
 		[Function("GetDocuments")]
-		public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+		public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
 		{
-			_logger.LogInformation("C# HTTP trigger function processed a request.");
-
+			var documents = await _storage.GetItems("documents");
 			var response = req.CreateResponse(HttpStatusCode.OK);
-			response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-			response.WriteString("Welcome to Azure Functions!");
+			await response.WriteAsJsonAsync(documents);
 
 			return response;
 		}

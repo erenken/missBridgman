@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  getDocumentsApi: 'https://missbridgmanapi.azurewebsites.net/api/GetDocuments?code=Hpq69dlR7iDEo3F_siVlWgZt235y6UVgkUfwjzFYUUlPAzFuSkccEA==',
+  getImagesApi: 'https://missbridgmanapi.azurewebsites.net/api/GetImages?year={year}&code=Hpq69dlR7iDEo3F_siVlWgZt235y6UVgkUfwjzFYUUlPAzFuSkccEA=='
 };
 
 /*
