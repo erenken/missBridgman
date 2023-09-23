@@ -5,8 +5,8 @@ on:
     branches:
     - main
     - work/addApi
-    paths:
-      - api/**
+    # paths:
+    #   - api/**
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: './api/src/MissBridgman' # set this to the path to your web app project, defaults to the repository root
