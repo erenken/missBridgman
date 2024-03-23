@@ -3,7 +3,7 @@ using Microsoft.Extensions.Hosting;
 using MissBridgman.Repositories;
 
 var host = new HostBuilder()
-	.ConfigureFunctionsWorkerDefaults()
+	.ConfigureFunctionsWebApplication()
 	.ConfigureServices(services =>
 	{
 		services.AddSingleton<IStorage, Storage>();
