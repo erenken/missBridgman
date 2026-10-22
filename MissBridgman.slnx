@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="MissBridgman.AppHost/MissBridgman.AppHost.csproj" />
+  <Project Path="MissBridgman.Web/MissBridgman.Web.csproj" />
+</Solution>

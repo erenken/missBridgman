@@ -14,7 +14,8 @@ public sealed class PhotoStore(IConfiguration configuration)
     {
         if (_container is null) return [];
         var photos = new List<PhotoRecord>();
-        await foreach (var item in _container.GetBlobsAsync(BlobTraits.Metadata, cancellationToken: token))
+        await foreach (var item in _container.GetBlobsAsync(
+            new GetBlobsOptions { Traits = BlobTraits.Metadata }, cancellationToken: token))
         {
             var itemYear = item.Metadata.TryGetValue("year", out var storedYear) ? storedYear : LegacyYear(item.Name);
             if (!string.IsNullOrWhiteSpace(year) && itemYear != year) continue;

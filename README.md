@@ -4,15 +4,15 @@ The replacement site is a .NET 11 Blazor Web App. It serves the visitor pages an
 
 ## Run locally
 
-Use the .NET 11 SDK. Set the administrator password and Azure Storage connection string with user secrets or environment variables:
+Use the .NET 11 SDK and open `MissBridgman.slnx` in Visual Studio. Set `MissBridgman.AppHost` as the startup project to run the site under Aspire. From the repository root, keep local credentials in the AppHost user-secrets store:
 
 ```powershell
-cd MissBridgman.Web
-dotnet user-secrets init
-dotnet user-secrets set "Admin:Password" "use-a-long-unique-password"
-dotnet user-secrets set "AzureWebJobsStorage" "<storage-connection-string>"
-dotnet run
+dotnet user-secrets set "Admin:Password" "use-a-long-unique-password" --project .\MissBridgman.AppHost\MissBridgman.AppHost.csproj
+dotnet user-secrets set "AzureWebJobsStorage" "<storage-connection-string>" --project .\MissBridgman.AppHost\MissBridgman.AppHost.csproj
+dotnet run --project .\MissBridgman.AppHost\MissBridgman.AppHost.csproj
 ```
+
+The AppHost forwards these settings to the Blazor app. To run just the web project, select `MissBridgman.Web` as the startup project instead.
 
 The API uses the existing `images` Blob container. The container must exist and allow public blob reads because gallery images are served with their blob URLs. Uploads accept JPG, PNG, and WebP images up to 12 MB. Each image stores its name, title, year, description, and category in blob metadata. Images without metadata from the previous site remain visible by filename.
 
