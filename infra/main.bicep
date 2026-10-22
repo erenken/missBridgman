@@ -17,11 +17,11 @@ param githubBranch string = 'main'
 @description('Existing Azure DNS zone to allow the GitHub deployment identity to update.')
 param dnsZoneName string = 'missbridgman.com'
 
-@description('Azure region for App Service, ACR, and the deployment identity.')
-param location string = resourceGroup().location
+@description('Existing Application Insights component receiving browser and server telemetry.')
+param applicationInsightsName string = 'missBridgmanApi'
 
-@description('Globally unique ACR name. If omitted, a name is generated from the resource group.')
-param acrName string = 'mbso${uniqueString(resourceGroup().id)}'
+@description('Azure region for App Service and the deployment identity.')
+param location string = resourceGroup().location
 
 @description('App Service plan SKU. B1 supports Always On and WebSockets for the Interactive Server app.')
 @allowed([
@@ -35,17 +35,17 @@ param appServiceSku string = 'B1'
 
 var planName = '${take(webAppName, 20)}-plan-${uniqueString(webAppName)}'
 var deployIdentityName = '${webAppName}-github-deploy'
-var acrLoginServer = '${acrName}.azurecr.io'
-var bootstrapImage = 'mcr.microsoft.com/dotnet/samples:aspnetapp'
 var roleIds = {
-  acrPush: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8311e382-0749-4cb8-b61a-304f252e45ec')
-  acrPull: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
   websiteContributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'de139f84-1756-47ae-9be6-808fbbe84772')
   dnsZoneContributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'befefa01-2a29-4197-83a8-272ff33ce314')
 }
 
 resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' existing = {
   name: dnsZoneName
+}
+
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: applicationInsightsName
 }
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
@@ -61,23 +61,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   }
   properties: {
     reserved: true
-  }
-}
-
-resource registry 'Microsoft.ContainerRegistry/registries@2025-04-01' = {
-  name: acrName
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    adminUserEnabled: false
-    publicNetworkAccess: 'Enabled'
-    policies: {
-      azureADAuthenticationAsArmPolicy: {
-        status: 'enabled'
-      }
-    }
   }
 }
 
@@ -101,7 +84,7 @@ resource githubFederation 'Microsoft.ManagedIdentity/userAssignedIdentities/fede
 resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   name: webAppName
   location: location
-  kind: 'app,linux,container'
+  kind: 'app,linux'
   identity: {
     type: 'SystemAssigned'
   }
@@ -110,8 +93,7 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
     httpsOnly: true
     clientAffinityEnabled: true
     siteConfig: {
-      linuxFxVersion: 'DOCKER|${bootstrapImage}'
-      acrUseManagedIdentityCreds: true
+      linuxFxVersion: 'dotnet|11'
       alwaysOn: true
       http20Enabled: true
       webSocketsEnabled: true
@@ -132,35 +114,15 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: 'true'
         }
         {
-          name: 'WEBSITES_PORT'
-          value: '8080'
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: applicationInsights.properties.ConnectionString
         }
         {
-          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
-          value: 'false'
+          name: 'OTEL_SERVICE_NAME'
+          value: 'MissBridgman.Web'
         }
       ]
     }
-  }
-}
-
-resource webAppAcrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(registry.id, webApp.id, roleIds.acrPull)
-  scope: registry
-  properties: {
-    roleDefinitionId: roleIds.acrPull
-    principalId: webApp.identity.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource githubAcrPush 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(registry.id, deployIdentity.id, roleIds.acrPush)
-  scope: registry
-  properties: {
-    roleDefinitionId: roleIds.acrPush
-    principalId: deployIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
   }
 }
 
@@ -186,8 +148,6 @@ resource githubDnsDeploy 'Microsoft.Authorization/roleAssignments@2022-04-01' = 
 
 output webAppName string = webApp.name
 output webAppUrl string = 'https://${webApp.properties.defaultHostName}'
-output acrName string = registry.name
-output acrLoginServer string = acrLoginServer
 output githubClientId string = deployIdentity.properties.clientId
 output githubTenantId string = tenant().tenantId
 output githubSubscriptionId string = subscription().subscriptionId

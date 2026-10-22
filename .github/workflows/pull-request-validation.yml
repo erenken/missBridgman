@@ -32,6 +32,3 @@ jobs:
 
       - name: Validate Bicep template
         run: az bicep build --file infra/main.bicep --stdout > /dev/null
-
-      - name: Build deployment container
-        run: docker build --platform linux/amd64 --file Dockerfile --tag miss-bridgman-web:pr .
