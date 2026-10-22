@@ -60,6 +60,7 @@ The Bicep command outputs the Web App name and GitHub OIDC identifiers. Copy tho
 | `AZURE_SUBSCRIPTION_ID` | `githubSubscriptionId` output |
 | `ADMIN_PASSWORD` | A long, unique password for `/admin` |
 | `AZURE_STORAGE_CONNECTION_STRING` | Connection string for the existing Storage account that contains the `images` container |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING` | Connection string for the existing `missBridgmanApi` Application Insights component |
 
 ### Repository variables
 
