@@ -20,7 +20,6 @@ jobs:
     env:
       AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
       AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
-      AZURE_APPINSIGHTS_NAME: missBridgmanApi
       AZURE_DNS_ZONE: ${{ vars.AZURE_DNS_ZONE }}
       AZURE_CUSTOM_DOMAIN: ${{ vars.AZURE_CUSTOM_DOMAIN }}
     steps:
@@ -39,9 +38,10 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
         run: |
           set -euo pipefail
-          for name in AZURE_RESOURCE_GROUP AZURE_WEBAPP_NAME AZURE_APPINSIGHTS_NAME AZURE_DNS_ZONE AZURE_CUSTOM_DOMAIN AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID ADMIN_PASSWORD AZURE_STORAGE_CONNECTION_STRING; do
+          for name in AZURE_RESOURCE_GROUP AZURE_WEBAPP_NAME AZURE_DNS_ZONE AZURE_CUSTOM_DOMAIN AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID ADMIN_PASSWORD AZURE_STORAGE_CONNECTION_STRING APPLICATIONINSIGHTS_CONNECTION_STRING; do
             if [ -z "${!name}" ]; then
               echo "Missing GitHub Actions variable or secret: $name" >&2
               exit 1
@@ -70,22 +70,13 @@ jobs:
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          APPLICATIONINSIGHTS_CONNECTION_STRING: ${{ secrets.APPLICATIONINSIGHTS_CONNECTION_STRING }}
         run: |
           set -euo pipefail
-          appinsights_connection_string=$(az resource show \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --name "$AZURE_APPINSIGHTS_NAME" \
-            --resource-type Microsoft.Insights/components \
-            --query properties.ConnectionString \
-            --output tsv)
-          if [ -z "$appinsights_connection_string" ]; then
-            echo "Application Insights component $AZURE_APPINSIGHTS_NAME has no connection string." >&2
-            exit 1
-          fi
           az webapp config appsettings set \
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_WEBAPP_NAME" \
-            --settings "Admin__Password=$ADMIN_PASSWORD" "AzureWebJobsStorage=$AZURE_STORAGE_CONNECTION_STRING" "APPLICATIONINSIGHTS_CONNECTION_STRING=$appinsights_connection_string" \
+            --settings "Admin__Password=$ADMIN_PASSWORD" "AzureWebJobsStorage=$AZURE_STORAGE_CONNECTION_STRING" "APPLICATIONINSIGHTS_CONNECTION_STRING=$APPLICATIONINSIGHTS_CONNECTION_STRING" \
             --output none
 
       - name: Deploy application package
