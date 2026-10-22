@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "MissBridgman": {
-      "commandName": "Project",
-      "commandLineArgs": "--port 7185",
-      "launchBrowser": false
-    }
-  }
-}
