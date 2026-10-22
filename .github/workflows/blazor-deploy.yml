@@ -1,13 +1,6 @@
-name: Build and deploy Miss Bridgman
+name: Deploy Miss Bridgman
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'Dockerfile'
-      - 'MissBridgman.Web/**'
-      - 'infra/**'
-      - '.github/workflows/blazor-deploy.yml'
   push:
     branches: [main]
     paths:
@@ -15,24 +8,12 @@ on:
       - 'MissBridgman.Web/**'
       - 'infra/**'
       - '.github/workflows/blazor-deploy.yml'
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate Bicep template
-        run: az bicep build --file infra/main.bicep --stdout > /dev/null
-      - name: Build container image
-        run: docker build --platform linux/amd64 --file Dockerfile --tag miss-bridgman-web:pr .
-
   deploy:
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -1,0 +1,34 @@
+name: Pull request build and test
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 11
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 11.0.x
+          include-prerelease: true
+
+      - name: Build and test solution
+        run: dotnet test MissBridgman.slnx --configuration Release --verbosity minimal
+
+      - name: Validate Bicep template
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+
+      - name: Build deployment container
+        run: docker build --platform linux/amd64 --file Dockerfile --tag miss-bridgman-web:pr .
