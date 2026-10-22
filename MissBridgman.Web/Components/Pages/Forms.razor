@@ -1,0 +1,34 @@
+@page "/forms"
+@inject IJSRuntime JS
+<PageTitle>Forms &amp; information | Miss Bridgman</PageTitle>
+<section class="page-hero page-hero-compact"><p class="eyebrow">Your next step</p><h1>Forms &amp; information</h1><p>Start with the interest form below. Print a copy for your records, or send the details to our team by email.</p></section>
+<section class="form-layout section-wrap">
+    <div class="form-intro"><p class="eyebrow">Participation interest</p><h2>Tell us a little about yourself.</h2><p>We’ll follow up with details about eligibility, the upcoming season, and what to expect. Information for the next season is typically available in late August.</p><div class="info-card"><strong>Questions?</strong><a href="mailto:missbridgmanqc@gmail.com">missbridgmanqc@gmail.com</a></div></div>
+    <form class="interest-form" @onsubmit="Submit" @onsubmit:preventDefault>
+        <div class="form-title"><span>01 / GET STARTED</span><h3>Interest form</h3><p>Fields marked * are required.</p></div>
+        <div class="field-row"><label>Participant name *<input @bind="name" required maxlength="120" autocomplete="name" /></label><label>Age *<input @bind="age" required type="number" min="6" max="19" /></label></div>
+        <div class="field-row"><label>Parent or guardian name<input @bind="guardian" maxlength="120" /></label><label>Email address *<input @bind="email" required type="email" maxlength="200" autocomplete="email" /></label></div>
+        <label>What would you like to know?<textarea @bind="notes" rows="4" maxlength="1200"></textarea></label>
+        @if (submitted) { <p class="success-note">Your form is ready. Choose print or email to share it with our team.</p> }
+        <div class="actions form-actions"><button class="button button-dark" type="submit">Prepare form <span>→</span></button><button class="button button-outline" type="button" @onclick="Print">Print / save PDF</button><button class="under-link button-quiet" type="button" @onclick="Email">Email to our team ↗</button></div>
+        <p class="privacy-note">This form does not send or store your information. Email opens your email app with the details filled in.</p>
+    </form>
+</section>
+@code {
+    private string name = "", age = "", guardian = "", email = "", notes = "";
+    private bool submitted;
+    private void Submit() => submitted = true;
+    private async Task Print()
+    {
+        try { await JS.InvokeVoidAsync("window.print"); }
+        catch (InvalidOperationException) { }
+    }
+    private async Task Email()
+    {
+        submitted = true;
+        var body = $"Participant: {name}\nAge: {age}\nParent/guardian: {guardian}\nEmail: {email}\n\nNotes:\n{notes}";
+        var uri = "mailto:missbridgmanqc@gmail.com?subject=" + Uri.EscapeDataString("Miss Bridgman participation interest") + "&body=" + Uri.EscapeDataString(body);
+        try { await JS.InvokeVoidAsync("open", uri, "_self"); }
+        catch (InvalidOperationException) { }
+    }
+}

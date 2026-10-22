@@ -1,0 +1,31 @@
+@page "/admin"
+@inject IHttpContextAccessor Context
+@inject NavigationManager Navigation
+<PageTitle>Photo admin | Miss Bridgman</PageTitle>
+<section class="page-hero page-hero-compact"><p class="eyebrow">Site administration</p><h1>Manage gallery photos</h1><p>Add a photo with the context visitors need. Images appear in the public gallery as soon as they are uploaded.</p></section>
+<section class="admin-shell section-wrap">
+    @if (!authenticated)
+    {
+        <form class="interest-form admin-card" method="post" action="/api/admin/login">
+            <p class="eyebrow">Administrator sign in</p><h2>Welcome back.</h2>
+            @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("error=1")) { <p class="error-note">The password could not be verified.</p> }
+            <label>Admin password<input name="password" type="password" required autocomplete="current-password" /></label>
+            <button class="button button-dark" type="submit">Sign in <span>→</span></button>
+            <p class="privacy-note">Set the server configuration value <code>Admin__Password</code> before signing in.</p>
+        </form>
+    }
+    else
+    {
+        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("uploaded=1")) { <p class="success-note">Photo uploaded and added to the gallery.</p> }
+        <div class="admin-heading"><div><p class="eyebrow">Gallery manager</p><h2>Add a photo</h2></div><form method="post" action="/api/admin/logout"><button class="button button-outline" type="submit">Sign out</button></form></div>
+        <form class="interest-form admin-card" method="post" action="/api/admin/photos" enctype="multipart/form-data">
+            <label>Photo file *<input type="file" name="image" accept="image/jpeg,image/png,image/webp" required /><small>JPG, PNG, or WebP. Maximum size 12 MB.</small></label>
+            <div class="field-row"><label>Person or group name *<input name="name" maxlength="120" required /></label><label>Year *<input name="year" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required /></label></div>
+            <label>Title / role<input name="title" maxlength="120" placeholder="Miss Bridgman, Mr. Bridgman, volunteers…" /></label>
+            <label>Category<input name="category" maxlength="80" placeholder="Court, community service, event…" /></label>
+            <label>Description<textarea name="description" rows="4" maxlength="500"></textarea></label>
+            <button class="button button-dark" type="submit">Upload photo <span>→</span></button>
+        </form>
+    }
+</section>
+@code { private bool authenticated; protected override void OnInitialized() => authenticated = Context.HttpContext?.User.Identity?.IsAuthenticated == true; }

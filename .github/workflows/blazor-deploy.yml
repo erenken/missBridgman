@@ -1,0 +1,171 @@
+name: Build and deploy Miss Bridgman
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'MissBridgman.Web/**'
+      - 'infra/**'
+      - '.github/workflows/blazor-deploy.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'MissBridgman.Web/**'
+      - 'infra/**'
+      - '.github/workflows/blazor-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Bicep template
+        run: az bicep build --file infra/main.bicep --stdout > /dev/null
+      - name: Build container image
+        run: docker build --platform linux/amd64 --file Dockerfile --tag miss-bridgman-web:pr .
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+      AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+      AZURE_DNS_ZONE: ${{ vars.AZURE_DNS_ZONE }}
+      AZURE_CUSTOM_DOMAIN: ${{ vars.AZURE_CUSTOM_DOMAIN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check deployment configuration
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          set -euo pipefail
+          for name in AZURE_RESOURCE_GROUP AZURE_WEBAPP_NAME AZURE_ACR_NAME AZURE_DNS_ZONE AZURE_CUSTOM_DOMAIN AZURE_CLIENT_ID AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID ADMIN_PASSWORD AZURE_STORAGE_CONNECTION_STRING; do
+            if [ -z "${!name}" ]; then
+              echo "Missing GitHub Actions variable or secret: $name" >&2
+              exit 1
+            fi
+          done
+
+      - name: Sign in to Azure using GitHub OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to Azure Container Registry
+        id: acr
+        run: |
+          set -euo pipefail
+          login_server=$(az acr show --name "$AZURE_ACR_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query loginServer --output tsv)
+          for attempt in {1..12}; do
+            if az acr login --name "$AZURE_ACR_NAME"; then
+              break
+            fi
+            if [ "$attempt" -eq 12 ]; then exit 1; fi
+            sleep 10
+          done
+          echo "login_server=$login_server" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push application image
+        env:
+          LOGIN_SERVER: ${{ steps.acr.outputs.login_server }}
+        run: |
+          set -euo pipefail
+          image="$LOGIN_SERVER/missbridgman-web:$GITHUB_SHA"
+          docker build --platform linux/amd64 --file Dockerfile --tag "$image" .
+          docker push "$image"
+          echo "IMAGE=$image" >> "$GITHUB_ENV"
+
+      - name: Configure application secrets
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          set -euo pipefail
+          az webapp config appsettings set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --settings "Admin__Password=$ADMIN_PASSWORD" "AzureWebJobsStorage=$AZURE_STORAGE_CONNECTION_STRING" \
+            --output none
+
+      - name: Deploy container image
+        run: |
+          set -euo pipefail
+          az webapp config container set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --container-image-name "$IMAGE" \
+            --output none
+          az webapp config set \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_WEBAPP_NAME" \
+            --generic-configurations '{"acrUseManagedIdentityCreds": true}' \
+            --output none
+          az webapp restart --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME"
+
+      - name: Confirm the app is healthy
+        run: |
+          set -euo pipefail
+          url="https://$AZURE_WEBAPP_NAME.azurewebsites.net/healthz"
+          for attempt in {1..24}; do
+            if curl --fail --silent --show-error "$url"; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "The app did not become healthy: $url" >&2
+          exit 1
+
+      - name: Bind missbridgman.com and HTTPS
+        run: |
+          set -euo pipefail
+          app_ip=$(az webapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --query inboundIpAddress --output tsv)
+          app_host=$(az webapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --query defaultHostName --output tsv)
+          verification_id=$(az webapp show --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --query customDomainVerificationId --output tsv)
+
+          if az network dns record-set a show --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name @ >/dev/null 2>&1; then
+            az network dns record-set a delete --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name @ --yes --output none
+          fi
+          az network dns record-set a create --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name @ --ttl 300 --output none
+          az network dns record-set a add-record --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name @ --ipv4-address "$app_ip" --output none
+
+          if ! az network dns record-set txt show --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid >/dev/null 2>&1; then
+            az network dns record-set txt create --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid --ttl 300 --output none
+          fi
+          az network dns record-set txt add-record --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid --value "$verification_id" --output none
+
+          az network dns record-set cname set-record --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name www --cname "$app_host" --output none
+          if ! az network dns record-set txt show --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid.www >/dev/null 2>&1; then
+            az network dns record-set txt create --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid.www --ttl 300 --output none
+          fi
+          az network dns record-set txt add-record --resource-group "$AZURE_RESOURCE_GROUP" --zone-name "$AZURE_DNS_ZONE" --name asuid.www --value "$verification_id" --output none
+
+          for hostname in "$AZURE_CUSTOM_DOMAIN" "www.$AZURE_CUSTOM_DOMAIN"; do
+            if ! az webapp config hostname list --resource-group "$AZURE_RESOURCE_GROUP" --webapp-name "$AZURE_WEBAPP_NAME" --query "[?name=='$hostname'] | length(@)" --output tsv | grep -q '^1$'; then
+              az webapp config hostname add --resource-group "$AZURE_RESOURCE_GROUP" --webapp-name "$AZURE_WEBAPP_NAME" --hostname "$hostname" --output none
+            fi
+            if ! az webapp config ssl list --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --query "[?subjectName=='$hostname'] | length(@)" --output tsv | grep -q '^1$'; then
+              az webapp config ssl create --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --hostname "$hostname" --output none
+            fi
+            thumbprint=$(az webapp config ssl list --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --query "[?subjectName=='$hostname'].thumbprint | [0]" --output tsv)
+            if [ -n "$thumbprint" ]; then
+              az webapp config ssl bind --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_WEBAPP_NAME" --hostname "$hostname" --certificate-thumbprint "$thumbprint" --ssl-type SNI --output none
+            fi
+          done

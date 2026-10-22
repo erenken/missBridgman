@@ -1,0 +1,29 @@
+@page "/gallery"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using MissBridgman.Web.Data
+<PageTitle>Photo gallery | Miss Bridgman</PageTitle>
+<section class="page-hero page-hero-compact"><p class="eyebrow">The moments, together</p><h1>Photo gallery</h1><p>Celebrating our titleholders, volunteers, and the community that makes it all possible.</p></section>
+<section class="section-wrap gallery-content">
+    <div class="filter-row"><label for="year">Browse by year</label><select id="year" @bind="selectedYear" @bind:after="LoadPhotos"><option value="">All years</option>@foreach (var year in years) { <option value="@year">@year</option> }</select></div>
+    @if (photos.Count == 0) { <div class="photo-empty"><span class="sparkle">✳</span><p>@(error is null ? "The gallery is ready for new memories. Check back soon." : error)</p></div> }
+    else { <div class="photo-grid photo-grid-large">@foreach (var photo in photos) { <article class="photo-card"><img src="@photo.Url" alt="@photo.Name" loading="lazy" /><span>@photo.Name <small>@photo.Year</small></span>@if (!string.IsNullOrWhiteSpace(photo.Description)) { <p>@photo.Description</p> }</article> }</div> }
+</section>
+@code {
+    private IReadOnlyList<PhotoRecord> photos = [];
+    private List<string> years = [];
+    private string selectedYear = "";
+    private string? error;
+    protected override async Task OnInitializedAsync() => await LoadPhotos();
+    private async Task LoadPhotos()
+    {
+        try
+        {
+            var uri = new Uri(new Uri(Navigation.BaseUri), "api/photos" + (string.IsNullOrEmpty(selectedYear) ? "" : "?year=" + Uri.EscapeDataString(selectedYear)));
+            photos = await Http.GetFromJsonAsync<List<PhotoRecord>>(uri) ?? [];
+            if (string.IsNullOrEmpty(selectedYear)) years = photos.Select(p => p.Year).Where(y => y.Length > 0).Distinct().OrderByDescending(y => y).ToList();
+            error = null;
+        }
+        catch (HttpRequestException) { error = "The gallery is temporarily unavailable."; }
+    }
+}

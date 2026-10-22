@@ -1,0 +1,93 @@
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using MissBridgman.Web.Components;
+using MissBridgman.Web.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+builder.Services.AddAuthentication("AdminCookie").AddCookie("AdminCookie", options =>
+{
+    options.Cookie.Name = "MissBridgman.Admin";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+});
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<PhotoStore>();
+
+var app = builder.Build();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseAntiforgery();
+
+app.MapGet("/healthz", () => Results.Ok(new { status = "healthy" })).AllowAnonymous();
+
+app.MapPost("/api/admin/login", async (HttpContext context, IConfiguration config) =>
+{
+    var form = context.Request.HasFormContentType ? await context.Request.ReadFormAsync() : null;
+    var password = form?["password"].ToString() ?? (await context.Request.ReadFromJsonAsync<LoginRequest>())?.Password;
+    var expected = config["Admin:Password"];
+    if (string.IsNullOrWhiteSpace(expected) || password is null || !FixedTimeEquals(expected, password))
+        return form is null ? Results.Unauthorized() : Results.Redirect("/admin?error=1");
+
+    await context.SignInAsync("AdminCookie", new System.Security.Claims.ClaimsPrincipal(
+        new System.Security.Claims.ClaimsIdentity([new System.Security.Claims.Claim("Name", "Site administrator"), new System.Security.Claims.Claim("Role", "Admin")], "AdminCookie")));
+    return form is null ? Results.Ok() : Results.Redirect("/admin?login=1");
+}).AllowAnonymous();
+
+app.MapPost("/api/admin/logout", async (HttpContext context) =>
+{
+    await context.SignOutAsync("AdminCookie");
+    return Results.NoContent();
+}).RequireAuthorization();
+
+app.MapGet("/api/photos", async (PhotoStore store, string? year, CancellationToken token) =>
+    Results.Ok(await store.ListAsync(year, token))).AllowAnonymous();
+
+app.MapPost("/api/admin/photos", async (HttpRequest request, PhotoStore store, CancellationToken token) =>
+{
+    if (!request.HasFormContentType) return Results.BadRequest("Expected multipart form data.");
+    var form = await request.ReadFormAsync(token);
+    var image = form.Files.GetFile("image");
+    if (image is null || image.Length == 0) return Results.BadRequest("Choose an image to upload.");
+    if (image.Length > 12 * 1024 * 1024) return Results.BadRequest("Images must be 12 MB or smaller.");
+    if (image.ContentType is not ("image/jpeg" or "image/png" or "image/webp")) return Results.BadRequest("Use a JPG, PNG, or WebP image.");
+    var photo = new PhotoMetadata(
+        form["name"].ToString().Trim(), form["title"].ToString().Trim(), form["year"].ToString().Trim(),
+        form["description"].ToString().Trim(), form["category"].ToString().Trim());
+    if (string.IsNullOrWhiteSpace(photo.Name) || photo.Year.Length != 4 || !int.TryParse(photo.Year, out _))
+        return Results.BadRequest("Name and a four-digit year are required.");
+    await store.SaveAsync(image, photo, token);
+    return Results.Redirect("/admin?uploaded=1");
+}).RequireAuthorization();
+
+app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+app.Run();
+
+static bool FixedTimeEquals(string expected, string actual)
+{
+    var left = SHA256.HashData(Encoding.UTF8.GetBytes(expected));
+    var right = SHA256.HashData(Encoding.UTF8.GetBytes(actual ?? string.Empty));
+    return CryptographicOperations.FixedTimeEquals(left, right);
+}
+
+record LoginRequest(string Password);

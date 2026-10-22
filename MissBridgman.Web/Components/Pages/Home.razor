@@ -1,0 +1,36 @@
+@page "/"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using MissBridgman.Web.Data
+
+<PageTitle>Miss Bridgman | Scholarships, service &amp; community</PageTitle>
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Bridgman, Michigan · Since 1939</p>
+        <h1>Confidence grows when a community believes in you.</h1>
+        <p class="hero-lede">A local scholarship and mentoring program helping young people find their voice, serve their community, and step into what comes next.</p>
+        <div class="actions"><a class="button button-light" href="/forms">Explore participation <span>→</span></a><a class="text-link" href="/about">Meet our organization</a></div>
+    </div>
+    <div class="hero-art"><div class="sun-disc"></div><img src="/images/MBSOLogo.jpg" alt="Miss Bridgman Scholarship Organization" /><span class="hero-note">Scholarship<br />Service<br />Belonging</span></div>
+</section>
+<section class="welcome section-wrap">
+    <div><p class="eyebrow">A place to grow</p><h2>Big moments start with a supportive community.</h2></div>
+    <div><p>Miss Bridgman is an all-volunteer organization and a local mentoring program for young people ages 6–19. Through scholarship, service, and year-round encouragement, participants build skills that stay with them long after pageant day.</p><a class="under-link" href="/about">Learn about us <span>↗</span></a></div>
+</section>
+<section class="feature-band"><div><p class="eyebrow">For participants &amp; families</p><h2>Curious about joining?</h2><p>Find current forms, what to expect, and a simple way to get in touch. Information for the next season is usually available in late summer.</p><a class="button button-dark" href="/forms">View forms &amp; information <span>→</span></a></div><div class="feature-stamp">M<br /><small>B</small></div></section>
+<section class="section-wrap gallery-preview"><div class="section-heading"><div><p class="eyebrow">Moments worth keeping</p><h2>Our community in pictures</h2></div><a class="under-link" href="/gallery">Visit the gallery <span>↗</span></a></div>
+    @if (photos.Count > 0)
+    {
+        <div class="photo-grid">@foreach (var photo in photos.Take(3)) { <a class="photo-card" href="/gallery"><img src="@photo.Url" alt="@photo.Name" /><span>@photo.Name <small>@photo.Year</small></span></a> }</div>
+    }
+    else { <div class="photo-empty"><span class="sparkle">✳</span><p>Photos from recent events will appear here.</p></div> }
+</section>
+
+@code {
+    private IReadOnlyList<PhotoRecord> photos = [];
+    protected override async Task OnInitializedAsync()
+    {
+        try { photos = await Http.GetFromJsonAsync<IReadOnlyList<PhotoRecord>>(new Uri(new Uri(Navigation.BaseUri), "api/photos")) ?? []; }
+        catch (HttpRequestException) { }
+    }
+}
