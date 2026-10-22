@@ -28,6 +28,7 @@ builder.Services.AddAuthentication("AdminCookie").AddCookie("AdminCookie", optio
 });
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<PhotoStore>();
+builder.Services.AddSingleton<TicketSettingsStore>();
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment())
@@ -64,6 +65,20 @@ app.MapPost("/api/admin/logout", async (HttpContext context) =>
 
 app.MapGet("/api/photos", async (PhotoStore store, string? year, CancellationToken token) =>
     Results.Ok(await store.ListAsync(year, token))).AllowAnonymous();
+
+app.MapGet("/api/forms/ticket-price", async (TicketSettingsStore store, CancellationToken token) =>
+    Results.Ok(await store.GetPriceAsync(token))).AllowAnonymous();
+
+app.MapPost("/api/admin/ticket-price", async (HttpRequest request, TicketSettingsStore store, CancellationToken token) =>
+{
+    var form = request.HasFormContentType ? await request.ReadFormAsync(token) : null;
+    if (!decimal.TryParse(form?["price"], System.Globalization.NumberStyles.Number,
+        System.Globalization.CultureInfo.InvariantCulture, out var price) || price <= 0 || price > 1000)
+        return form is null ? Results.BadRequest("Enter a ticket price greater than $0 and no more than $1,000.") : Results.Redirect("/admin?ticketPriceError=1");
+    try { await store.SavePriceAsync(price, token); }
+    catch (InvalidOperationException) { return Results.Redirect("/admin?ticketPriceError=1"); }
+    return Results.Redirect("/admin?ticketPriceUpdated=1");
+}).RequireAuthorization();
 
 app.MapPost("/api/admin/photos", async (HttpRequest request, PhotoStore store, CancellationToken token) =>
 {
