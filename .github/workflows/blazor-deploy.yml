@@ -61,7 +61,17 @@ jobs:
           dotnet publish MissBridgman.Web/MissBridgman.Web.csproj \
             --configuration Release \
             --framework net11.0 \
+            --runtime linux-x64 \
+            --self-contained true \
+            -p:UseAppHost=true \
             --output ./publish
+          cat > ./publish/startup.sh <<'EOF'
+          #!/bin/sh
+          set -eu
+          cd /home/site/wwwroot
+          chmod +x ./MissBridgman.Web
+          exec ./MissBridgman.Web
+          EOF
           cd publish
           zip -qr ../publish.zip .
           cd ..
@@ -91,6 +101,7 @@ jobs:
             --resource-group "$AZURE_RESOURCE_GROUP" \
             --name "$AZURE_WEBAPP_NAME" \
             --linux-fx-version 'dotnet|11' \
+            --startup-file 'bash startup.sh' \
             --output none
           az webapp deploy \
             --resource-group "$AZURE_RESOURCE_GROUP" \

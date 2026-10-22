@@ -94,6 +94,7 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
     clientAffinityEnabled: true
     siteConfig: {
       linuxFxVersion: 'dotnet|11'
+      appCommandLine: 'bash startup.sh'
       alwaysOn: true
       http20Enabled: true
       webSocketsEnabled: true
