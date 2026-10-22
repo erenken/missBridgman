@@ -1,3 +1,5 @@
+@inject IConfiguration Configuration
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,6 +13,9 @@
     <link rel="stylesheet" href="@Assets["MissBridgman.Web.styles.css"]" />
     <ImportMap />
     <link rel="icon" type="image/jpeg" href="@Assets["images/MBSOLogo-Plain.jpg"]" />
+    <meta name="application-insights-connection-string" content="@Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]" />
+    <script src="https://js.monitor.azure.com/scripts/b/ai.3.gbl.min.js" crossorigin="anonymous" defer></script>
+    <script src="@Assets["js/app-insights.js"]" defer></script>
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 

@@ -1,12 +1,17 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.OpenTelemetry;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using MissBridgman.Web.Components;
 using MissBridgman.Web.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.UseMicrosoftOpenTelemetry(options =>
+{
+    options.Exporters = ExportTarget.AzureMonitor;
+});
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
