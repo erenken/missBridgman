@@ -24,8 +24,11 @@ jobs:
           dotnet-version: 11.0.x
           include-prerelease: true
 
-      - name: Build and test solution
-        run: dotnet test MissBridgman.slnx --configuration Release --verbosity minimal
+      - name: Build solution
+        run: dotnet build MissBridgman.slnx --configuration Release --verbosity minimal
+
+      - name: Run automated tests
+        run: dotnet test MissBridgman.slnx --configuration Release --no-build --no-restore --verbosity minimal
 
       - name: Validate Bicep template
         run: az bicep build --file infra/main.bicep --stdout > /dev/null
