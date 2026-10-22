@@ -13,7 +13,6 @@
             @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("error=1")) { <p class="error-note">The password could not be verified.</p> }
             <label>Admin password<input name="password" type="password" required autocomplete="current-password" /></label>
             <button class="button button-dark" type="submit">Sign in <span>→</span></button>
-            <p class="privacy-note">Set the server configuration value <code>Admin__Password</code> before signing in.</p>
         </form>
     }
     else

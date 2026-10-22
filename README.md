@@ -31,7 +31,7 @@ Without a storage connection string, the site and forms still run and the galler
 - `POST /api/admin/photos` - authenticated multipart image upload and metadata
 - `/healthz` - App Service health probe
 
-The participation form runs in the visitor's browser only. Printing creates a paper/PDF copy; email opens the visitor's mail app with the details filled in. The site does not store or email form submissions.
+Form entries remain in the active form session and aren't saved to application storage. The form page's **Save form as PDF** button opens the browser print dialog; choose **Save as PDF** to download a copy with the completed fields and drawn contestant/guardian signatures. The page links to the committee contact email so the visitor can attach the downloaded PDF. The site does not store or email form submissions.
 
 ## Deploy to Azure App Service
 
@@ -39,7 +39,7 @@ The participation form runs in the visitor's browser only. Printing creates a pa
 
 The ASP.NET Core API uses Microsoft's OpenTelemetry distribution to export server requests, dependencies, logs, and metrics to `missBridgmanApi`. Browser page views, JavaScript errors, and fetch dependencies use the supported Application Insights JavaScript SDK and carry W3C trace context for correlation with server telemetry. Browser monitoring uses the public Application Insights connection string and can be disabled locally by leaving `APPLICATIONINSIGHTS_CONNECTION_STRING` unset.
 
-The person deploying the infrastructure must be signed into Azure CLI and have permission to create the resources and role assignments in the subscription/resource group (typically Owner, or Contributor plus User Access Administrator / Role Based Access Control Administrator).
+The person deploying the infrastructure must be signed into Azure CLI and have permission to create the resources and role assignments in the subscription/resource group (typically Owner, or Contributor plus User Access Administrator / Role Based Access Control Administrator). The GitHub deployment identity receives Website Contributor on the Web App and DNS Zone Contributor on the existing DNS zone. If a hostname needs a new managed certificate, an Azure administrator must create it first; the deployment workflow preserves and verifies the existing SNI bindings without expanding the GitHub identity's resource-group permissions.
 
 From PowerShell, create the resources and the branch-scoped GitHub identity:
 
