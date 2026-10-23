@@ -72,17 +72,31 @@ app.MapGet("/api/photos", async (PhotoStore store, string? year, CancellationTok
     Results.Ok(await store.ListAsync(year, token))).AllowAnonymous();
 
 app.MapGet("/api/forms/ticket-price", async (TicketSettingsStore store, CancellationToken token) =>
-    Results.Ok(await store.GetPriceAsync(token))).AllowAnonymous();
+    Results.Ok((await store.GetSettingsAsync(token)).TicketPrice)).AllowAnonymous();
 
-app.MapPost("/api/admin/ticket-price", async (HttpRequest request, TicketSettingsStore store, CancellationToken token) =>
+app.MapPost("/api/admin/pricing", async (HttpRequest request, TicketSettingsStore store, CancellationToken token) =>
 {
     var form = request.HasFormContentType ? await request.ReadFormAsync(token) : null;
-    if (!decimal.TryParse(form?["price"], System.Globalization.NumberStyles.Number,
-        System.Globalization.CultureInfo.InvariantCulture, out var price) || price <= 0 || price > 1000)
-        return form is null ? Results.BadRequest("Enter a ticket price greater than $0 and no more than $1,000.") : Results.Redirect("/admin?ticketPriceError=1");
-    try { await store.SavePriceAsync(price, token); }
+    if (form is null) return Results.BadRequest("Expected form data.");
+    static bool ReadPrice(IFormCollection form, string key, out decimal value) => decimal.TryParse(
+        form[key], System.Globalization.NumberStyles.Number,
+        System.Globalization.CultureInfo.InvariantCulture, out value) && value is >= 0 and <= 100000;
+    if (!ReadPrice(form, "ticketPrice", out var ticketPrice) ||
+        !ReadPrice(form, "goodLuckPrice", out var goodLuckPrice) ||
+        !ReadPrice(form, "archivedGoodLuckPrice", out var archivedGoodLuckPrice) ||
+        !ReadPrice(form, "fullPageAdPrice", out var fullPageAdPrice) ||
+        !ReadPrice(form, "halfPageAdPrice", out var halfPageAdPrice) ||
+        !ReadPrice(form, "quarterPageAdPrice", out var quarterPageAdPrice) ||
+        !ReadPrice(form, "businessCardAdPrice", out var businessCardAdPrice) ||
+        !System.Net.Mail.MailAddress.TryCreate(form["contactEmail"].ToString().Trim(), out var contactAddress) ||
+        !contactAddress.Address.Equals(form["contactEmail"].ToString().Trim(), StringComparison.OrdinalIgnoreCase))
+        return Results.Redirect("/admin?pricingError=1");
+    var settings = new PricingSettings(ticketPrice, goodLuckPrice, archivedGoodLuckPrice,
+        fullPageAdPrice, halfPageAdPrice, quarterPageAdPrice, businessCardAdPrice,
+        form["contactEmail"].ToString().Trim());
+    try { await store.SaveSettingsAsync(settings, token); }
     catch (InvalidOperationException) { return Results.Redirect("/admin?ticketPriceError=1"); }
-    return Results.Redirect("/admin?ticketPriceUpdated=1");
+    return Results.Redirect("/admin?pricingUpdated=1");
 }).RequireAuthorization();
 
 app.MapPost("/api/admin/photos", async (HttpRequest request, PhotoStore store, CancellationToken token) =>

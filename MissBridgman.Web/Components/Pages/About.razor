@@ -1,4 +1,13 @@
 @page "/about"
+@inject MissBridgman.Web.Data.TicketSettingsStore PricingStore
 <PageTitle>Our organization | Miss Bridgman</PageTitle>
 <section class="page-hero"><p class="eyebrow">Who we are</p><h1>Rooted in community.<br />Growing with confidence.</h1><p>Miss Bridgman Scholarship Organization is an all-volunteer scholarship and mentoring program serving young people ages 6–19.</p></section>
-<section class="prose-section"><div class="prose-mark">✳</div><div><h2>More than a crown</h2><p>For generations, our organization has helped young people build confidence, practice service, and discover their potential. Participants spend the year learning life skills like interview preparation, accountability, work ethic, and how to present themselves with confidence.</p><p>Our titleholders work alongside local organizations and community events. The Miss and Mr. Bridgman winners may go on to compete for Miss Blossomtime and Mr. Blossomtime the following spring.</p><h2>Get involved</h2><p>The pageant is typically held in December, with new season information available in late August. To invite our titleholders to a community event or ask about participation, contact us at <a href="mailto:missbridgmanqc@gmail.com">missbridgmanqc@gmail.com</a>.</p></div></section>
+<section class="prose-section"><div class="prose-mark">✳</div><div><h2>More than a crown</h2><p>For generations, our organization has helped young people build confidence, practice service, and discover their potential. Participants spend the year learning life skills like interview preparation, accountability, work ethic, and how to present themselves with confidence.</p><p>Our titleholders work alongside local organizations and community events. The Miss and Mr. Bridgman winners may go on to compete for Miss Blossomtime and Mr. Blossomtime the following spring.</p><h2>Get involved</h2><p>The pageant is typically held in December, with new season information available in late August. To invite our titleholders to a community event or ask about participation, contact us at <a href="mailto:@contactEmail">@contactEmail</a>.</p></div></section>
+@code {
+    private string contactEmail = MissBridgman.Web.Data.TicketSettingsStore.Defaults.ContactEmail;
+    protected override async Task OnInitializedAsync()
+    {
+        try { contactEmail = (await PricingStore.GetSettingsAsync()).ContactEmail; }
+        catch (Azure.RequestFailedException) { }
+    }
+}

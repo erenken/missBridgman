@@ -1,4 +1,5 @@
 @inherits LayoutComponentBase
+@inject MissBridgman.Web.Data.TicketSettingsStore PricingStore
 
 <header class="site-header">
     <a class="brand" href="/" aria-label="Miss Bridgman Scholarship Organization home">
@@ -8,5 +9,13 @@
     <NavMenu />
 </header>
 <main>@Body</main>
-<footer class="site-footer"><span>Miss Bridgman Scholarship Organization</span><span>© @DateTime.Now.Year myNOC LLC · <a href="https://mynoc.com" target="_blank" rel="noopener noreferrer">mynoc.com</a></span><a href="mailto:missbridgmanqc@gmail.com">Get in touch</a></footer>
+<footer class="site-footer"><span>Miss Bridgman Scholarship Organization</span><span>© @DateTime.Now.Year myNOC LLC · <a href="https://mynoc.com" target="_blank" rel="noopener noreferrer">mynoc.com</a></span><a href="mailto:@pricing.ContactEmail">Get in touch</a></footer>
 <div id="blazor-error-ui">Something went wrong. <a href="." class="reload">Reload</a><button class="dismiss">×</button></div>
+@code {
+    private MissBridgman.Web.Data.PricingSettings pricing = MissBridgman.Web.Data.TicketSettingsStore.Defaults;
+    protected override async Task OnInitializedAsync()
+    {
+        try { pricing = await PricingStore.GetSettingsAsync(); }
+        catch (Azure.RequestFailedException) { }
+    }
+}
