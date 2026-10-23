@@ -37,7 +37,6 @@ var planName = '${take(webAppName, 20)}-plan-${uniqueString(webAppName)}'
 var deployIdentityName = '${webAppName}-github-deploy'
 var roleIds = {
   websiteContributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'de139f84-1756-47ae-9be6-808fbbe84772')
-  dnsZoneContributor: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'befefa01-2a29-4197-83a8-272ff33ce314')
 }
 
 resource dnsZone 'Microsoft.Network/dnsZones@2018-05-01' existing = {
@@ -127,21 +126,102 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
   }
 }
 
+// Keep the custom-domain DNS, hostname registration, and TLS bindings under IaC.
+resource apexARecord 'Microsoft.Network/dnsZones/A@2018-05-01' = {
+  parent: dnsZone
+  name: '@'
+  properties: {
+    TTL: 300
+    ARecords: [
+      {
+        ipv4Address: webApp.properties.inboundIpAddress
+      }
+    ]
+  }
+}
+
+resource apexVerificationRecord 'Microsoft.Network/dnsZones/TXT@2018-05-01' = {
+  parent: dnsZone
+  name: 'asuid'
+  properties: {
+    TTL: 300
+    TXTRecords: [
+      {
+        value: [webApp.properties.customDomainVerificationId]
+      }
+    ]
+  }
+}
+
+resource wwwCnameRecord 'Microsoft.Network/dnsZones/CNAME@2018-05-01' = {
+  parent: dnsZone
+  name: 'www'
+  properties: {
+    TTL: 300
+    CNAMERecord: {
+      cname: webApp.properties.defaultHostName
+    }
+  }
+}
+
+resource wwwVerificationRecord 'Microsoft.Network/dnsZones/TXT@2018-05-01' = {
+  parent: dnsZone
+  name: 'asuid.www'
+  properties: {
+    TTL: 300
+    TXTRecords: [
+      {
+        value: [webApp.properties.customDomainVerificationId]
+      }
+    ]
+  }
+}
+
+resource apexCertificate 'Microsoft.Web/certificates@2024-04-01' existing = {
+  name: dnsZoneName
+}
+
+resource wwwCertificate 'Microsoft.Web/certificates@2024-04-01' existing = {
+  name: 'www.${dnsZoneName}'
+}
+
+resource apexHostnameBinding 'Microsoft.Web/sites/hostNameBindings@2024-04-01' = {
+  parent: webApp
+  name: dnsZoneName
+  properties: {
+    siteName: webApp.name
+    hostNameType: 'Verified'
+    customHostNameDnsRecordType: 'A'
+    sslState: 'SniEnabled'
+    thumbprint: apexCertificate.properties.thumbprint
+  }
+  dependsOn: [
+    apexARecord
+    apexVerificationRecord
+  ]
+}
+
+resource wwwHostnameBinding 'Microsoft.Web/sites/hostNameBindings@2024-04-01' = {
+  parent: webApp
+  name: 'www.${dnsZoneName}'
+  properties: {
+    siteName: webApp.name
+    hostNameType: 'Verified'
+    customHostNameDnsRecordType: 'CName'
+    sslState: 'SniEnabled'
+    thumbprint: wwwCertificate.properties.thumbprint
+  }
+  dependsOn: [
+    wwwCnameRecord
+    wwwVerificationRecord
+  ]
+}
+
 resource githubWebAppDeploy 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(webApp.id, deployIdentity.id, roleIds.websiteContributor)
   scope: webApp
   properties: {
     roleDefinitionId: roleIds.websiteContributor
-    principalId: deployIdentity.properties.principalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource githubDnsDeploy 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(dnsZone.id, deployIdentity.id, roleIds.dnsZoneContributor)
-  scope: dnsZone
-  properties: {
-    roleDefinitionId: roleIds.dnsZoneContributor
     principalId: deployIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
