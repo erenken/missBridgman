@@ -18,13 +18,17 @@
     else
     {
         @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("uploaded=1")) { <p class="success-note">Photo uploaded and added to the gallery.</p> }
-        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("ticketPriceUpdated=1")) { <p class="success-note">Ticket price updated.</p> }
-        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("ticketPriceError=1")) { <p class="error-note">Ticket price could not be saved. Check that it is between $0.01 and $1,000 and storage is configured.</p> }
-        <form class="interest-form admin-card ticket-price-form" method="post" action="/api/admin/ticket-price">
-            <p class="eyebrow">Ticket orders</p><h2>Set pageant ticket price</h2>
-            <p>Current price: <strong>@ticketPrice.ToString("C2", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</strong> per ticket. This value is stored in Azure Blob Storage and used by both ticket order forms.</p>
-            <label>Price per ticket<input name="price" type="number" min="0.01" max="1000" step="0.01" value="@ticketPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label>
-            <button class="button button-dark" type="submit">Save ticket price</button>
+        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("pricingUpdated=1")) { <p class="success-note">Form prices updated.</p> }
+        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("pricingError=1")) { <p class="error-note">Prices must be between $0 and $100,000. Check each amount and try again.</p> }
+        @if (Navigation.ToAbsoluteUri(Navigation.Uri).Query.Contains("ticketPriceError=1")) { <p class="error-note">Prices could not be saved. Check the amounts and storage configuration.</p> }
+        <form class="interest-form admin-card ticket-price-form" method="post" action="/api/admin/pricing">
+            <p class="eyebrow">Form pricing</p><h2>Set form prices</h2>
+            <p>These prices are saved in Azure Blob Storage and used on the ticket, Good Luck ad, and business ad forms. Enter 0 for a free item.</p>
+            <h3>Ticket orders</h3><label>Price per ticket<input name="ticketPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.TicketPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label>
+            <h3>Good Luck ads</h3><div class="field-row"><label>Current version price per message<input name="goodLuckPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.GoodLuckPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label><label>Archived version price per message<input name="archivedGoodLuckPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.ArchivedGoodLuckPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label></div>
+            <h3>Business ad sales</h3><div class="field-row"><label>Full page ad<input name="fullPageAdPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.FullPageAdPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label><label>Half page ad<input name="halfPageAdPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.HalfPageAdPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label></div><div class="field-row"><label>Quarter page ad<input name="quarterPageAdPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.QuarterPageAdPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label><label>Business card ad<input name="businessCardAdPrice" type="number" min="0" max="100000" step="0.01" value="@pricing.BusinessCardAdPrice.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" required /></label></div>
+            <h3>Contact and form submissions</h3><label>Committee email address<input name="contactEmail" type="email" maxlength="254" value="@pricing.ContactEmail" required /></label>
+            <button class="button button-dark" type="submit">Save form prices</button>
         </form>
         <div class="admin-heading"><div><p class="eyebrow">Gallery manager</p><h2>Add a photo</h2></div><form method="post" action="/api/admin/logout"><button class="button button-outline" type="submit">Sign out</button></form></div>
         <form class="interest-form admin-card" method="post" action="/api/admin/photos" enctype="multipart/form-data">
@@ -39,13 +43,13 @@
 </section>
 @code {
     private bool authenticated;
-    private decimal ticketPrice = TicketSettingsStore.DefaultPrice;
+    private PricingSettings pricing = TicketSettingsStore.Defaults;
     protected override async Task OnInitializedAsync()
     {
         authenticated = Context.HttpContext?.User.Identity?.IsAuthenticated == true;
         if (authenticated)
         {
-            try { ticketPrice = await TicketSettings.GetPriceAsync(); }
+            try { pricing = await TicketSettings.GetSettingsAsync(); }
             catch (Azure.RequestFailedException) { }
         }
     }
